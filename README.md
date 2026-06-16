@@ -8,9 +8,26 @@ This app uses Python and `faster-whisper` to record computer audio or transcribe
 
 - Windows 10 or 11
 - Python 3.10 or newer
+- Git, if you want to clone the project onto another computer
 - A local audio file in `.mp3`, `.wav`, or `.m4a` format, or a meeting playing through your computer speakers/headphones
 
 Your audio is processed locally. Installing Python packages and downloading a Whisper model can use the internet, but transcription itself does not send audio to a cloud service.
+
+## Quick Start
+
+After setup, start a meeting recording with:
+
+```powershell
+python .\transcribe.py record "meeting-name" --include-mic
+```
+
+Keep PowerShell open while the meeting is being recorded. Press `Ctrl+C` to stop recording and begin transcription.
+
+Your main transcript will be:
+
+```text
+transcripts\meeting-name.txt
+```
 
 ## Setup
 
@@ -33,6 +50,28 @@ Install dependencies:
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
+
+## Setup On Another Computer
+
+Clone the repository:
+
+```powershell
+mkdir "$env:USERPROFILE\Repos"
+cd "$env:USERPROFILE\Repos"
+git clone https://github.com/braydenadcox/voice-transcription.git
+cd voice-transcription
+```
+
+Then create the virtual environment and install dependencies:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+VS Code is not required. PowerShell is enough to run the app.
 
 ## Usage
 
@@ -67,6 +106,12 @@ transcripts\client-meeting.md
 ```
 
 The `record` command captures computer audio with Windows loopback. That captures the voices coming out of Teams, Zoom, Meet, or another meeting app. Use `--include-mic` if you also want to mix in your own microphone.
+
+Before relying on it for an important meeting, run a one-minute test:
+
+```powershell
+python .\transcribe.py record "test-meeting" --minutes 1 --include-mic
+```
 
 Transcribe an audio file:
 
@@ -118,6 +163,14 @@ Common model choices:
 - `large-v3`
 
 If the named model is not already cached, `faster-whisper` may download it the first time. To stay fully offline after setup, use `--model` with a local model directory.
+
+## Notes
+
+- Keep PowerShell open while recording.
+- Use `--include-mic` if you want your own voice in the transcript.
+- Without `--include-mic`, the app records the meeting audio coming out of the computer, but may not include your microphone.
+- The first transcription may take longer because the Whisper model may need to download.
+- Make sure recording meetings is allowed for your workplace and call context.
 
 ## Test
 
