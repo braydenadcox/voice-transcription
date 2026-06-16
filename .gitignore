@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.py[cod]
+
+# Generated transcripts are local output. Keep the directory via transcripts/.gitkeep.
+transcripts/*
+!transcripts/.gitkeep
