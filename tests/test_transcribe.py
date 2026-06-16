@@ -6,6 +6,7 @@ from transcribe import (
     TranscriptSegment,
     format_markdown_transcript,
     output_paths,
+    recording_path,
     validate_audio_file,
     write_transcripts,
 )
@@ -42,6 +43,11 @@ class TranscribeCliTests(unittest.TestCase):
 
         self.assertEqual(txt_path.name, "sales_call_1.txt")
         self.assertEqual(md_path.name, "sales_call_1.md")
+
+    def test_recording_path_is_sanitized_wav(self) -> None:
+        path = recording_path("client call #1", Path("recordings"))
+
+        self.assertEqual(path.name, "client_call_1.wav")
 
     def test_markdown_escapes_table_pipes(self) -> None:
         content = format_markdown_transcript(

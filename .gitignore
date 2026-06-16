@@ -5,3 +5,7 @@ __pycache__/
 # Generated transcripts are local output. Keep the directory via transcripts/.gitkeep.
 transcripts/*
 !transcripts/.gitkeep
+
+# Saved meeting recordings are local output. Keep the directory via recordings/.gitkeep.
+recordings/*
+!recordings/.gitkeep

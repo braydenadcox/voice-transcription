@@ -1,14 +1,14 @@
 # voice-transcription
 
-Local-only Windows voice transcription from the command line.
+Local-only Windows meeting recording and voice transcription from the command line.
 
-This Phase 1 app uses Python and `faster-whisper` to transcribe `.mp3`, `.wav`, and `.m4a` files. It writes both plain text and Markdown transcripts into `transcripts/`.
+This app uses Python and `faster-whisper` to record computer audio or transcribe existing `.mp3`, `.wav`, and `.m4a` files. It writes plain text transcripts into `transcripts/` and also creates a Markdown copy you can ignore if you only need the transcript text.
 
 ## Requirements
 
 - Windows 10 or 11
 - Python 3.10 or newer
-- A local audio file in `.mp3`, `.wav`, or `.m4a` format
+- A local audio file in `.mp3`, `.wav`, or `.m4a` format, or a meeting playing through your computer speakers/headphones
 
 Your audio is processed locally. Installing Python packages and downloading a Whisper model can use the internet, but transcription itself does not send audio to a cloud service.
 
@@ -35,6 +35,38 @@ python -m pip install -r requirements.txt
 ```
 
 ## Usage
+
+Record a meeting until you press `Ctrl+C`, then transcribe it:
+
+```powershell
+python .\transcribe.py record "client-meeting" --include-mic
+```
+
+Record for a fixed amount of time:
+
+```powershell
+python .\transcribe.py record "client-meeting" --minutes 60 --include-mic
+```
+
+The recording is saved here:
+
+```text
+recordings\client-meeting.wav
+```
+
+The plain transcript is saved here:
+
+```text
+transcripts\client-meeting.txt
+```
+
+The Markdown copy is saved here:
+
+```text
+transcripts\client-meeting.md
+```
+
+The `record` command captures computer audio with Windows loopback. That captures the voices coming out of Teams, Zoom, Meet, or another meeting app. Use `--include-mic` if you also want to mix in your own microphone.
 
 Transcribe an audio file:
 
