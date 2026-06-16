@@ -21,7 +21,7 @@ After setup, start a meeting recording with:
 python .\transcribe.py record "meeting-name" --include-mic
 ```
 
-Keep PowerShell open while the meeting is being recorded. Press `Ctrl+C` to stop recording and begin transcription.
+Keep PowerShell open while the meeting is being recorded. Press `Ctrl+C` to stop recording and begin transcription. When transcription finishes, the `.txt` transcript opens in Notepad automatically.
 
 Your main transcript will be:
 
@@ -107,6 +107,12 @@ transcripts\client-meeting.md
 
 The `record` command captures computer audio with Windows loopback. That captures the voices coming out of Teams, Zoom, Meet, or another meeting app. Use `--include-mic` if you also want to mix in your own microphone.
 
+If you do not want Notepad to open automatically:
+
+```powershell
+python .\transcribe.py record "client-meeting" --include-mic --no-open
+```
+
 Before relying on it for an important meeting, run a one-minute test:
 
 ```powershell
@@ -169,6 +175,7 @@ If the named model is not already cached, `faster-whisper` may download it the f
 - Keep PowerShell open while recording.
 - Use `--include-mic` if you want your own voice in the transcript.
 - Without `--include-mic`, the app records the meeting audio coming out of the computer, but may not include your microphone.
+- After a `record` command finishes transcription, the `.txt` transcript opens in Notepad unless you use `--no-open`.
 - The first transcription may take longer because the Whisper model may need to download.
 - Make sure recording meetings is allowed for your workplace and call context.
 

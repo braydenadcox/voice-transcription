@@ -4,6 +4,7 @@ import unittest
 
 from transcribe import (
     TranscriptSegment,
+    build_parser,
     format_markdown_transcript,
     output_paths,
     recording_path,
@@ -48,6 +49,11 @@ class TranscribeCliTests(unittest.TestCase):
         path = recording_path("client call #1", Path("recordings"))
 
         self.assertEqual(path.name, "client_call_1.wav")
+
+    def test_record_command_supports_no_open(self) -> None:
+        args = build_parser().parse_args(["record", "client-call", "--no-open"])
+
+        self.assertTrue(args.no_open)
 
     def test_markdown_escapes_table_pipes(self) -> None:
         content = format_markdown_transcript(

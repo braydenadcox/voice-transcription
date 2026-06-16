@@ -4,6 +4,7 @@ import argparse
 import datetime as dt
 import queue
 import re
+import subprocess
 import sys
 import threading
 import time
@@ -106,6 +107,13 @@ def write_transcripts(
     md_path.write_text(format_markdown_transcript(audio_path, segments), encoding="utf-8")
 
     return txt_path, md_path
+
+
+def open_in_notepad(path: Path) -> None:
+    if sys.platform != "win32":
+        return
+
+    subprocess.Popen(["notepad.exe", str(path)])
 
 
 def audio_to_pcm16(audio_data):
@@ -324,6 +332,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Only save the recording WAV; do not transcribe afterward.",
     )
+    record_parser.add_argument(
+        "--no-open",
+        action="store_true",
+        help="Do not open the text transcript in Notepad after recording.",
+    )
 
     return parser
 
@@ -369,6 +382,11 @@ def main(argv: list[str] | None = None) -> int:
     print("Transcription complete.")
     print(f"Text: {txt_path}")
     print(f"Markdown: {md_path}")
+
+    if args.command == "record" and not args.no_open:
+        open_in_notepad(txt_path)
+        print("Opened transcript in Notepad.")
+
     return 0
 
 
