@@ -95,6 +95,34 @@ Or double-click `Voice Transcription.bat`.
 
 The desktop app records computer audio, includes your microphone by default, and opens the transcript after transcription completes.
 
+### Create a pinned Windows shortcut
+
+To open the app from the taskbar without a PowerShell window:
+
+1. In File Explorer, go to `C:\Users\Brayden Adcox\Repos\voice-transcription`.
+2. Right-click `Voice Transcription.bat` and choose `Create shortcut`.
+3. Right-click the new shortcut and choose `Properties`.
+4. On the `Shortcut` tab, set `Target` to:
+
+```text
+"C:\Users\Brayden Adcox\Repos\voice-transcription\.venv\Scripts\pythonw.exe" "C:\Users\Brayden Adcox\Repos\voice-transcription\app.py"
+```
+
+5. Set `Start in` to:
+
+```text
+"C:\Users\Brayden Adcox\Repos\voice-transcription"
+```
+
+6. Click `Apply`, then `OK`.
+7. Rename the shortcut to `Voice Transcription`.
+8. Double-click the shortcut to confirm the small recorder window opens.
+9. Right-click the shortcut and choose `Show more options` > `Pin to taskbar`.
+
+If Windows does not show `Pin to taskbar`, choose `Pin to Start`, then open Start, right-click `Voice Transcription`, and choose `Pin to taskbar`.
+
+To change the taskbar icon, save an `.ico` file somewhere permanent, right-click the shortcut, choose `Properties`, click `Change Icon...`, browse to the `.ico` file, and apply the change. If the taskbar icon does not update right away, unpin and pin it again.
+
 Record a meeting until you press `Ctrl+C`, then transcribe it:
 
 ```powershell
