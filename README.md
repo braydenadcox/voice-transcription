@@ -4,6 +4,8 @@ Local-only Windows meeting recording and voice transcription from the command li
 
 This app uses Python and `faster-whisper` to record computer audio or transcribe existing `.mp3`, `.wav`, and `.m4a` files. It writes plain text transcripts into `transcripts/` and also creates a Markdown copy you can ignore if you only need the transcript text.
 
+It also includes a tiny desktop recording bar, so you can start and stop recording without opening a full browser window.
+
 ## Requirements
 
 - Windows 10 or 11
@@ -14,6 +16,14 @@ This app uses Python and `faster-whisper` to record computer audio or transcribe
 Your audio is processed locally. Installing Python packages and downloading a Whisper model can use the internet, but transcription itself does not send audio to a cloud service.
 
 ## Quick Start
+
+To use the small desktop app, double-click:
+
+```text
+Voice Transcription.bat
+```
+
+Click `Record` to start recording, then click `Stop` to save and transcribe it. The transcript opens in Notepad when it is ready.
 
 After setup, start a meeting recording with:
 
@@ -74,6 +84,16 @@ python -m pip install -r requirements.txt
 VS Code is not required. PowerShell is enough to run the app.
 
 ## Usage
+
+Open the small desktop recording bar:
+
+```powershell
+python .\app.py
+```
+
+Or double-click `Voice Transcription.bat`.
+
+The desktop app records computer audio, includes your microphone by default, and opens the transcript after transcription completes.
 
 Record a meeting until you press `Ctrl+C`, then transcribe it:
 

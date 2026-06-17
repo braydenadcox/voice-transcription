@@ -159,6 +159,7 @@ def record_system_audio(
     include_mic: bool,
     samplerate: int = DEFAULT_SAMPLE_RATE,
     channels: int = DEFAULT_CHANNELS,
+    stop_event: threading.Event | None = None,
 ) -> Path:
     try:
         import soundcard as sc
@@ -170,7 +171,7 @@ def record_system_audio(
     output_path = output_path.expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     frames_per_chunk = samplerate
-    stop_event = threading.Event()
+    stop_event = stop_event or threading.Event()
 
     speaker = sc.default_speaker()
     system_audio = sc.get_microphone(id=speaker.name, include_loopback=True)
