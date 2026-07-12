@@ -9,3 +9,7 @@ transcripts/*
 # Saved meeting recordings are local output. Keep the directory via recordings/.gitkeep.
 recordings/*
 !recordings/.gitkeep
+
+# The user's local meeting schedule and scheduler state.
+schedule.json
+schedule.json.tmp

@@ -4,7 +4,7 @@ Local-only Windows meeting recording and voice transcription from the command li
 
 This app uses Python and `faster-whisper` to record computer audio or transcribe existing `.mp3`, `.wav`, and `.m4a` files. It writes plain text transcripts into `transcripts/` and also creates a Markdown copy you can ignore if you only need the transcript text.
 
-It also includes a tiny desktop recording bar, so you can start and stop recording without opening a full browser window.
+It also includes a local desktop recorder and meeting schedule, so recordings can start and stop automatically without a browser or external calendar service.
 
 ## Requirements
 
@@ -24,6 +24,12 @@ Voice Transcription.bat
 ```
 
 Click `Record` to start recording, then click `Stop` to save and transcribe it. The transcript opens in Notepad when it is ready.
+
+### Schedule recordings
+
+Use the **Meeting schedule** panel to add, edit, or delete a meeting window. A meeting can run once, daily, weekly, or on selected weekdays. Each entry controls whether the microphone is mixed with system audio and whether transcription runs when the window ends.
+
+Keep the desktop app running (it may remain in the background) for automatic recording. The scheduler checks once per second, starts if the app opens during an active window, and saves recurring recordings with a date/time suffix so earlier occurrences are not overwritten. Schedule data stays on this computer in `schedule.json`.
 
 After setup, start a meeting recording with:
 
