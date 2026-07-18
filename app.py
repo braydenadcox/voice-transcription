@@ -42,6 +42,7 @@ class SlotDialog(tk.Toplevel):
             "name": tk.StringVar(value=slot.recording_name if slot else "meeting"),
             "mic": tk.BooleanVar(value=slot.include_mic if slot else True),
             "transcribe": tk.BooleanVar(value=slot.auto_transcribe if slot else True),
+            "stamp": tk.BooleanVar(value=slot.include_occurrence_stamp if slot else True),
         }
         self.day_vars = [
             tk.BooleanVar(value=bool(slot and index in slot.custom_days)) for index in range(7)
@@ -79,6 +80,9 @@ class SlotDialog(tk.Toplevel):
         ttk.Checkbutton(frame, text="Transcribe automatically", variable=self.vars["transcribe"]).grid(
             row=row + 2, column=2, columnspan=3, sticky="w", pady=(6, 2)
         )
+        ttk.Checkbutton(frame, text="Add date stamp for recurring meetings", variable=self.vars["stamp"]).grid(
+            row=row + 3, column=0, columnspan=5, sticky="w", pady=(2, 2)
+        )
         buttons = ttk.Frame(frame)
         buttons.grid(row=row + 3, column=0, columnspan=5, sticky="e", pady=(12, 0))
         ttk.Button(buttons, text="Cancel", command=self.destroy).pack(side=tk.LEFT)
@@ -106,7 +110,9 @@ class SlotDialog(tk.Toplevel):
                 custom_days=[i for i, value in enumerate(self.day_vars) if value.get()],
                 include_mic=self.vars["mic"].get(),
                 recording_name=self.vars["name"].get().strip() or "meeting",
-                auto_transcribe=self.vars["transcribe"].get(), last_started=None,
+                auto_transcribe=self.vars["transcribe"].get(),
+                include_occurrence_stamp=self.vars["stamp"].get(),
+                last_started=None,
             )
             self.result.validate()
         except ValueError as exc:
@@ -255,7 +261,7 @@ class RecorderApp:
                     self.persist_schedule()
                     self.active_slot_id = slot.id
                     self.active_end = occurrence[1]
-                    unique_name = f"{slot.recording_name}-{occurrence[0]:%Y%m%d-%H%M}"
+                    unique_name = slot.occurrence_name(occurrence[0])
                     self.start_recording(unique_name, slot.include_mic, slot.auto_transcribe)
                     self.status_var.set(f"Recording: {slot.title}")
                     break

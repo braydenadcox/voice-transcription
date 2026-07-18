@@ -41,6 +41,18 @@ class MeetingScheduleTests(unittest.TestCase):
         self.assertEqual(start, dt.datetime(2026, 7, 7, 9))
         self.assertEqual(end, dt.datetime(2026, 7, 8, 1))
 
+    def test_recurring_slots_include_the_occurrence_date_in_the_name(self) -> None:
+        slot = self.slot(recurrence="weekly", recording_name="standup")
+        occurrence_start = dt.datetime(2026, 7, 13, 9, 0)
+
+        self.assertEqual(slot.occurrence_name(occurrence_start), "standup-2026/07/13-09:00 AM")
+
+    def test_recurring_slots_can_skip_the_occurrence_date_in_the_name(self) -> None:
+        slot = self.slot(recurrence="weekly", recording_name="standup", include_occurrence_stamp=False)
+        occurrence_start = dt.datetime(2026, 7, 13, 9, 0)
+
+        self.assertEqual(slot.occurrence_name(occurrence_start), "standup")
+
     def test_schedule_round_trip_preserves_scheduler_state(self) -> None:
         slot = self.slot(recurrence="custom", custom_days=[0, 4], last_started="2026-07-06T09:00")
         with tempfile.TemporaryDirectory() as directory:

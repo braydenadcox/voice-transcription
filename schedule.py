@@ -21,6 +21,7 @@ class MeetingSlot:
     include_mic: bool = True
     recording_name: str = "meeting"
     auto_transcribe: bool = True
+    include_occurrence_stamp: bool = True
     id: str = field(default_factory=lambda: uuid.uuid4().hex)
     last_started: str | None = None
 
@@ -53,6 +54,14 @@ class MeetingSlot:
 
     def occurrence_start(self, day: dt.date) -> dt.datetime:
         return dt.datetime.combine(day, self.start.time())
+
+    def occurrence_name(self, occurrence_start: dt.datetime) -> str:
+        base_name = self.recording_name.strip()
+        if not base_name or base_name == "meeting":
+            base_name = self.title.strip() or "meeting"
+        if self.recurrence == "none" or not self.include_occurrence_stamp:
+            return base_name
+        return f"{base_name}-{occurrence_start:%Y/%m/%d-%I:%M %p}"
 
     def active_occurrence(self, now: dt.datetime) -> tuple[dt.datetime, dt.datetime] | None:
         # Yesterday matters for meeting windows that cross midnight.
