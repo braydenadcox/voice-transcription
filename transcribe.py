@@ -174,7 +174,37 @@ def record_system_audio(
     stop_event = stop_event or threading.Event()
 
     speaker = sc.default_speaker()
-    system_audio = sc.get_microphone(id=speaker.name, include_loopback=True)
+    if speaker is None:
+        raise RuntimeError("No default Windows playback device was found.")
+
+    # SoundCard's Windows backend exposes speaker loopback devices as microphones.
+    # Looking one up by the speaker's display name is brittle: names can differ
+    # between the speaker and loopback endpoints, and lookup failures may raise
+    # an exception with an empty message. Enumerate loopbacks and match the
+    # speaker name first, then fall back to the default speaker's loopback lookup.
+    loopbacks = list(sc.all_microphones(include_loopback=True))
+    speaker_name = speaker.name.casefold()
+    system_audio = next(
+        (
+            device
+            for device in loopbacks
+            if getattr(device, "isloopback", False)
+            and (
+                speaker_name in device.name.casefold()
+                or device.name.casefold() in speaker_name
+            )
+        ),
+        None,
+    )
+    if system_audio is None:
+        try:
+            system_audio = sc.get_microphone(id=str(speaker.id), include_loopback=True)
+        except Exception as exc:
+            available = ", ".join(device.name for device in loopbacks) or "none"
+            raise RuntimeError(
+                f"Could not open loopback audio for '{speaker.name}'. "
+                f"Available capture devices: {available}"
+            ) from exc
 
     with wave.open(str(output_path), "wb") as wav_file:
         wav_file.setnchannels(channels)
@@ -377,7 +407,10 @@ def main(argv: list[str] | None = None) -> int:
             language=args.language,
         )
     except Exception as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+        message = str(exc).strip()
+        if not message:
+            message = f"{type(exc).__name__} while recording/transcribing audio"
+        print(f"Error: {message}", file=sys.stderr)
         return 1
 
     print("Transcription complete.")
