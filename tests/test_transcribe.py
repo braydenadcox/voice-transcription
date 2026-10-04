@@ -1,11 +1,15 @@
 from pathlib import Path
 import tempfile
 import unittest
+import queue
+import threading
 
 from transcribe import (
     TranscriptSegment,
     build_parser,
     format_markdown_transcript,
+    next_audio_chunk,
+    record_device_chunks,
     output_paths,
     recording_path,
     validate_audio_file,
@@ -62,6 +66,42 @@ class TranscribeCliTests(unittest.TestCase):
         )
 
         self.assertIn("yes \\| no", content)
+
+
+    def test_audio_worker_propagates_capture_failure(self) -> None:
+        class BrokenRecorder:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def record(self, numframes):
+                raise RuntimeError("device disconnected")
+
+        class BrokenDevice:
+            def recorder(self, **kwargs):
+                return BrokenRecorder()
+
+        stop_event = threading.Event()
+        output_queue = queue.Queue()
+        error_queue = queue.Queue()
+        worker = threading.Thread(
+            target=record_device_chunks,
+            args=(BrokenDevice(), 48000, 2, 4800, stop_event,
+                  output_queue, error_queue, "Microphone"),
+        )
+        worker.start()
+        worker.join(timeout=1)
+
+        self.assertTrue(stop_event.is_set())
+        label, exc = error_queue.get_nowait()
+        self.assertEqual(label, "Microphone")
+        self.assertIn("device disconnected", str(exc))
+
+    def test_cancelled_audio_wait_returns_without_hanging(self) -> None:
+        stop_event = threading.Event()
+        stop_event.set()
+        result = next_audio_chunk(queue.Queue(), queue.Queue(), stop_event)
+        self.assertIsNone(result)
 
 
 if __name__ == "__main__":
