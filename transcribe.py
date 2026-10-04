@@ -147,10 +147,32 @@ def mix_audio_chunks(primary, secondary):
     return mixed
 
 
-def record_device_chunks(device, samplerate, channels, frames_per_chunk, stop_event, output_queue):
-    with device.recorder(samplerate=samplerate, channels=channels) as recorder:
-        while not stop_event.is_set():
-            output_queue.put(recorder.record(numframes=frames_per_chunk))
+def record_device_chunks(device, samplerate, channels, frames_per_chunk, stop_event, output_queue, error_queue, label):
+    try:
+        with device.recorder(samplerate=samplerate, channels=channels) as recorder:
+            while not stop_event.is_set():
+                chunk = recorder.record(numframes=frames_per_chunk)
+                try:
+                    output_queue.put(chunk, timeout=0.1)
+                except queue.Full:
+                    continue
+    except Exception as exc:
+        error_queue.put((label, exc))
+        stop_event.set()
+
+
+def next_audio_chunk(output_queue, error_queue, stop_event):
+    while not stop_event.is_set():
+        try:
+            return output_queue.get(timeout=0.1)
+        except queue.Empty:
+            try:
+                label, exc = error_queue.get_nowait()
+            except queue.Empty:
+                continue
+            message = str(exc).strip() or type(exc).__name__
+            raise RuntimeError(f"{label} audio capture failed: {message}") from exc
+    return None
 
 
 def record_system_audio(
@@ -170,7 +192,8 @@ def record_system_audio(
 
     output_path = output_path.expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    frames_per_chunk = samplerate
+    # 100 ms chunks keep Stop responsive.
+    frames_per_chunk = max(1, samplerate // 10)
     stop_event = stop_event or threading.Event()
 
     speaker = sc.default_speaker()
@@ -215,24 +238,22 @@ def record_system_audio(
         try:
             if include_mic:
                 mic = sc.default_microphone()
-                system_queue: queue.Queue = queue.Queue(maxsize=4)
-                mic_queue: queue.Queue = queue.Queue(maxsize=4)
+                if mic is None:
+                    raise RuntimeError("No default microphone was found.")
+                system_queue: queue.Queue = queue.Queue(maxsize=8)
+                mic_queue: queue.Queue = queue.Queue(maxsize=8)
+                error_queue: queue.Queue = queue.Queue()
 
                 system_thread = threading.Thread(
                     target=record_device_chunks,
-                    args=(
-                        system_audio,
-                        samplerate,
-                        channels,
-                        frames_per_chunk,
-                        stop_event,
-                        system_queue,
-                    ),
+                    args=(system_audio, samplerate, channels, frames_per_chunk, stop_event,
+                          system_queue, error_queue, "System"),
                     daemon=True,
                 )
                 mic_thread = threading.Thread(
                     target=record_device_chunks,
-                    args=(mic, samplerate, channels, frames_per_chunk, stop_event, mic_queue),
+                    args=(mic, samplerate, channels, frames_per_chunk, stop_event,
+                          mic_queue, error_queue, "Microphone"),
                     daemon=True,
                 )
                 system_thread.start()
@@ -241,9 +262,24 @@ def record_system_audio(
                 while not stop_event.is_set():
                     if duration_seconds and time.monotonic() - start_time >= duration_seconds:
                         break
-                    system_chunk = system_queue.get(timeout=2)
-                    mic_chunk = mic_queue.get(timeout=2)
+                    system_chunk = next_audio_chunk(system_queue, error_queue, stop_event)
+                    if system_chunk is None:
+                        break
+                    mic_chunk = next_audio_chunk(mic_queue, error_queue, stop_event)
+                    if mic_chunk is None:
+                        break
                     wav_file.writeframes(audio_to_pcm16(mix_audio_chunks(system_chunk, mic_chunk)).tobytes())
+
+                stop_event.set()
+                system_thread.join(timeout=1.0)
+                mic_thread.join(timeout=1.0)
+                try:
+                    label, exc = error_queue.get_nowait()
+                except queue.Empty:
+                    pass
+                else:
+                    message = str(exc).strip() or type(exc).__name__
+                    raise RuntimeError(f"{label} audio capture failed: {message}") from exc
             else:
                 with system_audio.recorder(samplerate=samplerate, channels=channels) as recorder:
                     while not stop_event.is_set():
