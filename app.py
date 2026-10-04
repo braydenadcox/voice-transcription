@@ -305,7 +305,9 @@ class RecorderApp:
                     audio_path, "base", DEFAULT_OUTPUT_DIR, "cpu", "int8", None)
             self.root.after(0, lambda: self.finish_success(auto_transcribe))
         except Exception as exc:
-            self.root.after(0, lambda: self.finish_error(exc))
+            # Exception variables are cleared after an except block; bind it now
+            # so Tkinter's deferred callback can still access the real error.
+            self.root.after(0, lambda error=exc: self.finish_error(error))
 
     def finish_success(self, auto_transcribed: bool) -> None:
         self._reset_recording_ui()
