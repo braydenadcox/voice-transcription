@@ -317,7 +317,8 @@ class RecorderApp:
     def finish_error(self, exc: Exception) -> None:
         self._reset_recording_ui()
         self.status_var.set("Error")
-        messagebox.showerror("Voice Transcription", str(exc))
+        message = str(exc).strip() or f"{type(exc).__name__} while recording/transcribing audio"
+        messagebox.showerror("Voice Transcription", message)
 
     def _reset_recording_ui(self) -> None:
         self.stop_event = None
